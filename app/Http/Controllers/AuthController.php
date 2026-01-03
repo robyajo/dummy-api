@@ -295,7 +295,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Get authenticated user profile.
+     * Get authenticated user profile with Redis Cache.
      * 
      * @return JsonResponse
      */
@@ -304,7 +304,15 @@ class AuthController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
 
-            return $this->successResponse($this->formatUserResponse($user), 'User profile fetched');
+            // Cache key based on user ID
+            $cacheKey = 'user_profile_' . $user->id;
+
+            // Try to get from cache, or store if missing (TTL 60 minutes)
+            $userProfile = Cache::remember($cacheKey, 60 * 60, function () use ($user) {
+                return $this->formatUserResponse($user);
+            });
+
+            return $this->successResponse($userProfile, 'User profile fetched (cached)');
         } catch (JWTException $e) {
             return $this->errorResponse('Token is invalid or expired', 401, ['error' => $e->getMessage()]);
         }

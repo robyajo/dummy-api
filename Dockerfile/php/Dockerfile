@@ -32,8 +32,8 @@ RUN apt-get update && apt-get install -y \
     sysvshm \
     sysvmsg
 
-# Install Imagick via PECL
-RUN pecl install imagick && docker-php-ext-enable imagick
+# Install Imagick & Redis via PECL
+RUN pecl install imagick redis && docker-php-ext-enable imagick redis
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

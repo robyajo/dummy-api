@@ -51,7 +51,15 @@ Proyek ini mengharapkan container dan jaringan berikut sudah berjalan di mesin h
         DB_USERNAME=root
         DB_PASSWORD=Tiram@1993
 
+        # Konfigurasi Redis
+        CACHE_STORE=redis
+        QUEUE_CONNECTION=redis
+        SESSION_DRIVER=redis
+
         REDIS_HOST=redis
+        REDIS_PORT=6379
+        # Wajib diisi agar tidak bentrok dengan aplikasi lain di server yang sama
+        CACHE_PREFIX=dummy_api_cache_
         ```
 
     > **Catatan Penting tentang Variabel Environment:**
