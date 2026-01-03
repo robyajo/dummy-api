@@ -71,8 +71,10 @@ This project expects the following containers and network to be already running 
     Build and start the application container using Docker Compose.
 
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
+
+    (Note: If `docker-compose` command is not found, use `docker compose` instead, as newer Docker versions integrate compose directly).
 
     This will start the PHP app on port `9001`.
 
@@ -80,14 +82,14 @@ This project expects the following containers and network to be already running 
     Install PHP dependencies using Composer inside the container.
 
     ```bash
-    docker-compose run --rm app composer install
+    docker compose run --rm app composer install
     ```
 
 6.  **Application Setup**
     Generate the application key and run database migrations.
     ```bash
-    docker-compose run --rm app php artisan key:generate
-    docker-compose run --rm app php artisan migrate
+    docker compose run --rm app php artisan key:generate
+    docker compose run --rm app php artisan migrate
     ```
 
 ## Accessing the Application
@@ -99,26 +101,26 @@ This project expects the following containers and network to be already running 
 -   **Stop Containers**:
 
     ```bash
-    docker-compose down
+    docker compose down
     ```
 
 -   **View Logs**:
 
     ```bash
-    docker-compose logs -f
+    docker compose logs -f
     ```
 
 -   **Run Artisan Commands**:
 
     ```bash
-    docker-compose run --rm app php artisan <command>
+    docker compose run --rm app php artisan <command>
     ```
 
-    Example: `docker-compose run --rm app php artisan make:controller TestController`
+    Example: `docker compose run --rm app php artisan make:controller TestController`
 
 -   **Access Container Shell**:
     ```bash
-    docker-compose exec app bash
+    docker compose exec app bash
     ```
 
 ## Troubleshooting
@@ -138,6 +140,6 @@ Ensure `set-docker-server-roby_backend` is listed. If your network name is diffe
 If you encounter permission issues with `storage` or `bootstrap/cache`, run:
 
 ```bash
-docker-compose run --rm app chmod -R 775 storage bootstrap/cache
-docker-compose run --rm app chown -R www-data:www-data storage bootstrap/cache
+docker compose run --rm app chmod -R 775 storage bootstrap/cache
+docker compose run --rm app chown -R www-data:www-data storage bootstrap/cache
 ```
