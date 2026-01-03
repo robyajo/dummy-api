@@ -308,7 +308,9 @@ class AuthController extends Controller
             // Cache key based on user ID
             $cacheKey = 'user_profile_' . $user->id;
 
-            // Try to get from cache, or store if missing (TTL 60 minutes)
+            // Try to get from cache, or store if missing (TTL 60 minutes = 60 * 60 seconds)
+            // Try to get from cache, or store if missing (TTL 10 minutes = 10 * 60 seconds)
+            // Try to get from cache, or store if missing (TTL 5 minutes = 5 * 60 seconds)
             $userProfile = Cache::remember($cacheKey, 60 * 60, function () use ($user) {
                 return $this->formatUserResponse($user);
             });
