@@ -1,48 +1,47 @@
-# Dummy API Project
+# Proyek Dummy API
 
-This is a Laravel-based API project designed to run in a Docker environment, connecting to existing external services (MySQL, Redis) running on the host network.
+Ini adalah proyek API berbasis Laravel yang dirancang untuk berjalan di lingkungan Docker, terhubung ke layanan eksternal yang sudah ada (MySQL, Redis) yang berjalan di jaringan host.
 
-## Prerequisites
+## Prasyarat
 
-Before running this project, ensure you have the following installed:
+Sebelum menjalankan proyek ini, pastikan Anda telah menginstal:
 
 -   [Docker](https://docs.docker.com/get-docker/)
 -   [Docker Compose](https://docs.docker.com/compose/install/)
 
-### External Dependencies
+### Dependensi Eksternal
 
-This project expects the following containers and network to be already running on your host machine:
+Proyek ini mengharapkan container dan jaringan berikut sudah berjalan di mesin host (VPS) Anda:
 
--   **Network**: `set-docker-server-roby_backend`
--   **Database**: A MariaDB/MySQL container named `mysql-db` connected to the above network.
--   **Redis**: A Redis container named `redis` connected to the above network.
+-   **Jaringan**: `set-docker-server-roby_backend`
+-   **Database**: Container MariaDB/MySQL bernama `mysql-db` yang terhubung ke jaringan di atas.
+-   **Redis**: Container Redis bernama `redis` yang terhubung ke jaringan di atas.
 
-## Installation & Setup
+## Instalasi & Pengaturan
 
-1.  **Clone the Repository**
+1.  **Clone Repository**
 
     ```bash
     git clone <repository-url>
     cd dummy-api
     ```
 
-2.  **Environment Configuration**
+2.  **Konfigurasi Environment**
+    Mengelola variabel environment dengan benar sangat penting di Docker. File `.env` memungkinkan Anda mengonfigurasi aplikasi tanpa mengubah kode.
 
-    Managing environment variables correctly is crucial in Docker. The `.env` file allows you to configure your application without changing the code.
-
-    -   **Copy the example file**:
+    -   **Salin file contoh**:
 
         ```bash
         cp .env.example .env
         ```
 
-    -   **Edit the `.env` file**:
-        You can edit this file directly on your host machine using `nano` or any text editor.
+    -   **Edit file `.env`**:
+        Anda bisa mengedit file ini langsung di mesin host menggunakan `nano` atau teks editor lainnya.
         ```bash
         nano .env
         ```
-    -   **Configure Database & Redis**:
-        Ensure these match your external container credentials:
+    -   **Konfigurasi Database & Redis**:
+        Pastikan ini sesuai dengan kredensial container eksternal Anda:
 
         ```ini
         DB_CONNECTION=mysql
@@ -55,123 +54,158 @@ This project expects the following containers and network to be already running 
         REDIS_HOST=redis
         ```
 
-    > **Important Note on Environment Variables:**
-    > Docker injects these variables when the container starts. If you modify `.env`, the changes **will not apply immediately** to the running container.
+    > **Catatan Penting tentang Variabel Environment:**
+    > Docker menyuntikkan variabel ini saat container dimulai. Jika Anda mengubah `.env`, perubahannya **TIDAK AKAN** berlaku secara otomatis pada container yang sedang berjalan.
     >
-    > To apply changes, you must restart the container:
+    > Untuk menerapkan perubahan, Anda harus merestart container:
     >
     > ```bash
     > docker compose restart app
     > ```
     >
-    > Or if you added new variables to `docker-compose.yml`, you need to recreate it:
+    > Atau jika Anda menambahkan variabel baru ke `docker-compose.yml`, Anda perlu membuat ulang container:
     >
     > ```bash
     > docker compose up -d
     > ```
 
 3.  **Setup Nginx Host**
-    Since you are using the Nginx installed on your VPS, you need to configure it to proxy requests to this Docker container.
+    Karena Anda menggunakan Nginx yang terinstal di VPS (host), Anda perlu mengonfigurasinya untuk meneruskan request (proxy) ke container Docker ini.
 
-    A sample configuration is provided in `nginx-host.conf`.
+    Contoh konfigurasi disediakan di file `nginx-host.conf`.
 
-    -   Copy the configuration to your Nginx sites directory:
+    -   Salin konfigurasi ke direktori sites Nginx Anda:
         ```bash
         sudo cp nginx-host.conf /etc/nginx/sites-available/dummy-api
         ```
-    -   Edit the file to set the correct `root` path and `server_name`:
+    -   Edit file untuk mengatur path `root` dan `server_name` yang benar:
         ```bash
         sudo nano /etc/nginx/sites-available/dummy-api
         ```
-        Make sure `root` points to `/path/to/your/dummy-api/public`.
-    -   Enable the site:
+        Pastikan `root` mengarah ke `/path/ke/folder/dummy-api/public` yang sebenarnya.
+    -   Aktifkan situs:
         ```bash
         sudo ln -s /etc/nginx/sites-available/dummy-api /etc/nginx/sites-enabled/
         sudo nginx -t
         sudo systemctl restart nginx
         ```
 
-4.  **Start Containers**
-    Build and start the application container using Docker Compose.
+4.  **Jalankan Container**
+    Bangun dan jalankan container aplikasi menggunakan Docker Compose.
 
     ```bash
     docker compose up -d --build
     ```
 
-    Masuk ke container aplikasi.
+    (Catatan: Jika perintah `docker-compose` tidak ditemukan, gunakan `docker compose`, karena versi Docker baru sudah mengintegrasikannya).
 
-    ```bash
-    docker compose exec app bash
-    ```
+    > **Tips:** Jika Anda melakukan perubahan pada `Dockerfile` atau `docker-compose.yml`, jalankan perintah ini lagi untuk mem-build ulang container.
 
-    (Note: If `docker-compose` command is not found, use `docker compose` instead, as newer Docker versions integrate compose directly).
+    Ini akan menjalankan aplikasi PHP di port `9001`.
 
-    > **Tip:** If you make changes to `Dockerfile` or `docker-compose.yml`, run this command again to rebuild the containers.
-
-    This will start the PHP app on port `9001`.
-
-5.  **Install Dependencies**
-    Install PHP dependencies using Composer inside the container.
+5.  **Install Dependensi**
+    Install dependensi PHP menggunakan Composer di dalam container.
 
     ```bash
     docker compose run --rm app composer install
     ```
 
-6.  **Application Setup**
-    Generate the application key and run database migrations.
+6.  **Setup Aplikasi**
+    Generate key aplikasi dan jalankan migrasi database.
     ```bash
     docker compose run --rm app php artisan key:generate
     docker compose run --rm app php artisan migrate
     ```
 
-## Accessing the Application
+## Alur Kerja Pengembangan & Masalah Umum
 
--   **Web URL**: `http://your-domain.com` (or whatever you configured in Nginx)
+### Kapan Harus Rebuild?
 
-## Useful Commands
+Anda **TIDAK** perlu me-rebuild Docker untuk setiap perubahan kode.
 
--   **Stop Containers**:
+-   **Cukup `git pull`**: Untuk perubahan pada file PHP (Controller, Model, Route), View, atau Config. Perubahan akan terlihat secara instan.
+-   **Rebuild (`docker compose up -d --build`)**: HANYA jika Anda mengubah `Dockerfile`, `docker-compose.yml`, atau dependensi sistem.
+-   **Restart (`docker compose restart app`)**: Ketika Anda mengedit file `.env`.
+-   **Jalankan Composer**: Ketika file `composer.json` atau `composer.lock` berubah (`docker compose run --rm app composer install`).
+
+### Rekomendasi Masa Depan & Potensi Masalah
+
+1.  **Masalah Izin Folder Storage (Sering Terjadi)**
+
+    -   **Masalah**: Terkadang setelah `git pull` atau clear cache, Laravel kehilangan akses tulis ke log atau cache.
+    -   **Solusi**: Jalankan kembali perintah permission:
+        ```bash
+        docker compose run --rm app chmod -R 777 storage bootstrap/cache
+        ```
+
+2.  **Konflik Migrasi Database**
+
+    -   **Masalah**: Jika banyak developer membuat migrasi dengan timestamp yang sama atau jika `migrate:rollback` gagal.
+    -   **Pencegahan**: Selalu jalankan `php artisan migrate:status` untuk cek status.
+    -   **Solusi**: Jika macet, Anda mungkin perlu menghapus entri dari tabel `migrations` di database secara manual.
+
+3.  **Queue Workers**
+
+    -   **Saran**: Jika nanti Anda menggunakan Queue/Job, Anda butuh container atau proses terpisah untuk menjalankan `php artisan queue:work`.
+    -   **Peringatan**: Worker queue harus di-restart (`php artisan queue:restart`) setiap kali Anda deploy kode baru, jika tidak dia akan tetap menjalankan kode lama dari memori.
+
+4.  **Penggunaan Ruang Disk**
+
+    -   **Masalah**: Image Docker dan container yang berhenti akan memakan tempat seiring waktu.
+    -   **Pemeliharaan**: Secara berkala jalankan `docker system prune` untuk membersihkan data yang tidak terpakai (Peringatan: ini menghapus container yang berhenti dan network yang tidak terpakai).
+
+5.  **Ukuran File Log**
+    -   **Masalah**: `laravel.log` atau log Docker bisa membesar tanpa batas.
+    -   **Rekomendasi**: Konfigurasikan Log Rotation di `config/logging.php` (gunakan channel `daily`) atau atur driver logging Docker untuk membatasi ukuran file.
+
+## Mengakses Aplikasi
+
+-   **URL Web**: `http://domain-anda.com` (atau sesuai yang dikonfigurasi di Nginx)
+
+## Perintah Berguna
+
+-   **Matikan Container**:
 
     ```bash
     docker compose down
     ```
 
--   **View Logs**:
+-   **Lihat Log**:
 
     ```bash
     docker compose logs -f
     ```
 
--   **Run Artisan Commands**:
+-   **Jalankan Perintah Artisan**:
 
     ```bash
-    docker compose run --rm app php artisan <command>
+    docker compose run --rm app php artisan <perintah>
     ```
 
-    Example: `docker compose run --rm app php artisan make:controller TestController`
+    Contoh: `docker compose run --rm app php artisan make:controller TestController`
 
--   **Access Container Shell**:
+-   **Masuk ke Shell Container**:
     ```bash
     docker compose exec app bash
     ```
 
 ## Troubleshooting
 
-### Network Issues
+### Masalah Jaringan
 
-If the application cannot connect to the database, verify that the external network exists:
+Jika aplikasi tidak bisa terhubung ke database, verifikasi bahwa jaringan eksternal ada:
 
 ```bash
 docker network ls
 ```
 
-Ensure `set-docker-server-roby_backend` is listed. If your network name is different, update `docker-compose.yml` accordingly.
+Pastikan `set-docker-server-roby_backend` ada dalam daftar. Jika nama jaringan Anda berbeda, perbarui `docker-compose.yml` yang sesuai.
 
-### Permission Issues
+### Masalah Izin (Permission)
 
-If you encounter permission issues with `storage` or `bootstrap/cache`, run:
+Jika Anda mengalami masalah izin dengan `storage` atau `bootstrap/cache`, jalankan:
 
 ```bash
-docker compose run --rm app chmod -R 775 storage bootstrap/cache
+docker compose run --rm app chmod -R 777 storage bootstrap/cache
 docker compose run --rm app chown -R www-data:www-data storage bootstrap/cache
 ```
