@@ -27,24 +27,48 @@ This project expects the following containers and network to be already running 
     ```
 
 2.  **Environment Configuration**
-    Copy the example environment file and configure it.
 
-    ```bash
-    cp .env.example .env
-    ```
+    Managing environment variables correctly is crucial in Docker. The `.env` file allows you to configure your application without changing the code.
 
-    Ensure your `.env` file has the following database and redis configurations to match the external containers:
+    -   **Copy the example file**:
 
-    ```ini
-    DB_CONNECTION=mysql
-    DB_HOST=mysql-db
-    DB_PORT=3306
-    DB_DATABASE=mituni_api
-    DB_USERNAME=myuser
-    DB_PASSWORD=mypass
+        ```bash
+        cp .env.example .env
+        ```
 
-    REDIS_HOST=redis
-    ```
+    -   **Edit the `.env` file**:
+        You can edit this file directly on your host machine using `nano` or any text editor.
+        ```bash
+        nano .env
+        ```
+    -   **Configure Database & Redis**:
+        Ensure these match your external container credentials:
+
+        ```ini
+        DB_CONNECTION=mysql
+        DB_HOST=mysql-db
+        DB_PORT=3306
+        DB_DATABASE=mituni_api
+        DB_USERNAME=root
+        DB_PASSWORD=Tiram@1993
+
+        REDIS_HOST=redis
+        ```
+
+    > **Important Note on Environment Variables:**
+    > Docker injects these variables when the container starts. If you modify `.env`, the changes **will not apply immediately** to the running container.
+    >
+    > To apply changes, you must restart the container:
+    >
+    > ```bash
+    > docker compose restart app
+    > ```
+    >
+    > Or if you added new variables to `docker-compose.yml`, you need to recreate it:
+    >
+    > ```bash
+    > docker compose up -d
+    > ```
 
 3.  **Setup Nginx Host**
     Since you are using the Nginx installed on your VPS, you need to configure it to proxy requests to this Docker container.
@@ -72,6 +96,12 @@ This project expects the following containers and network to be already running 
 
     ```bash
     docker compose up -d --build
+    ```
+
+    Masuk ke container aplikasi.
+
+    ```bash
+    docker compose exec app bash
     ```
 
     (Note: If `docker-compose` command is not found, use `docker compose` instead, as newer Docker versions integrate compose directly).

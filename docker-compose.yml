@@ -17,8 +17,8 @@ services:
       DB_HOST: mysql-db
       DB_PORT: "${DB_PORT:-3306}"
       DB_DATABASE: "${DB_DATABASE:-mituni_api}"
-      DB_USERNAME: "${DB_USERNAME:-myuser}"
-      DB_PASSWORD: "${DB_PASSWORD:-mypass}"
+      DB_USERNAME: "${DB_USERNAME:-root}"
+      DB_PASSWORD: "${DB_PASSWORD:-Tiram@1993}"
       REDIS_HOST: redis
     volumes:
       - ./:/var/www/html
