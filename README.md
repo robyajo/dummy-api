@@ -1,59 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Dummy API Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is a Laravel-based API project designed to run in a Docker environment, connecting to existing external services (MySQL, Redis) running on the host network.
 
-## About Laravel
+## Prerequisites
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Before running this project, ensure you have the following installed:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+-   [Docker](https://docs.docker.com/get-docker/)
+-   [Docker Compose](https://docs.docker.com/compose/install/)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### External Dependencies
 
-## Learning Laravel
+This project expects the following containers and network to be already running on your host machine:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+-   **Network**: `set-docker-server-roby_backend`
+-   **Database**: A MariaDB/MySQL container named `mysql-db` connected to the above network.
+-   **Redis**: A Redis container named `redis` connected to the above network.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Installation & Setup
 
-## Laravel Sponsors
+1.  **Clone the Repository**
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    ```bash
+    git clone <repository-url>
+    cd dummy-api
+    ```
 
-### Premium Partners
+2.  **Environment Configuration**
+    Copy the example environment file and configure it.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    ```bash
+    cp .env.example .env
+    ```
 
-## Contributing
+    Ensure your `.env` file has the following database and redis configurations to match the external containers:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    ```ini
+    DB_CONNECTION=mysql
+    DB_HOST=mysql-db
+    DB_PORT=3306
+    DB_DATABASE=mituni_api
+    DB_USERNAME=myuser
+    DB_PASSWORD=mypass
 
-## Code of Conduct
+    REDIS_HOST=redis
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3.  **Setup Nginx Host**
+    Since you are using the Nginx installed on your VPS, you need to configure it to proxy requests to this Docker container.
 
-## Security Vulnerabilities
+    A sample configuration is provided in `nginx-host.conf`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    -   Copy the configuration to your Nginx sites directory:
+        ```bash
+        sudo cp nginx-host.conf /etc/nginx/sites-available/dummy-api
+        ```
+    -   Edit the file to set the correct `root` path and `server_name`:
+        ```bash
+        sudo nano /etc/nginx/sites-available/dummy-api
+        ```
+        Make sure `root` points to `/path/to/your/dummy-api/public`.
+    -   Enable the site:
+        ```bash
+        sudo ln -s /etc/nginx/sites-available/dummy-api /etc/nginx/sites-enabled/
+        sudo nginx -t
+        sudo systemctl restart nginx
+        ```
 
-## License
+4.  **Start Containers**
+    Build and start the application container using Docker Compose.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    ```bash
+    docker-compose up -d --build
+    ```
+
+    This will start the PHP app on port `9001`.
+
+5.  **Install Dependencies**
+    Install PHP dependencies using Composer inside the container.
+
+    ```bash
+    docker-compose run --rm app composer install
+    ```
+
+6.  **Application Setup**
+    Generate the application key and run database migrations.
+    ```bash
+    docker-compose run --rm app php artisan key:generate
+    docker-compose run --rm app php artisan migrate
+    ```
+
+## Accessing the Application
+
+-   **Web URL**: `http://your-domain.com` (or whatever you configured in Nginx)
+
+## Useful Commands
+
+-   **Stop Containers**:
+
+    ```bash
+    docker-compose down
+    ```
+
+-   **View Logs**:
+
+    ```bash
+    docker-compose logs -f
+    ```
+
+-   **Run Artisan Commands**:
+
+    ```bash
+    docker-compose run --rm app php artisan <command>
+    ```
+
+    Example: `docker-compose run --rm app php artisan make:controller TestController`
+
+-   **Access Container Shell**:
+    ```bash
+    docker-compose exec app bash
+    ```
+
+## Troubleshooting
+
+### Network Issues
+
+If the application cannot connect to the database, verify that the external network exists:
+
+```bash
+docker network ls
+```
+
+Ensure `set-docker-server-roby_backend` is listed. If your network name is different, update `docker-compose.yml` accordingly.
+
+### Permission Issues
+
+If you encounter permission issues with `storage` or `bootstrap/cache`, run:
+
+```bash
+docker-compose run --rm app chmod -R 775 storage bootstrap/cache
+docker-compose run --rm app chown -R www-data:www-data storage bootstrap/cache
+```
