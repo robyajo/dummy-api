@@ -12,6 +12,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Intervention\Image\Laravel\Facades\Image;
@@ -307,11 +308,12 @@ class AuthController extends Controller
 
             // Cache key based on user ID
             $cacheKey = 'user_profile_' . $user->id;
-
             // Try to get from cache, or store if missing (TTL 60 minutes = 60 * 60 seconds)
             // Try to get from cache, or store if missing (TTL 10 minutes = 10 * 60 seconds)
             // Try to get from cache, or store if missing (TTL 5 minutes = 5 * 60 seconds)
+
             $userProfile = Cache::remember($cacheKey, 60 * 60, function () use ($user) {
+                Log::info('REDIS MISS: Mengambil data user dari Database untuk ID: ' . $user->id);
                 return $this->formatUserResponse($user);
             });
 
