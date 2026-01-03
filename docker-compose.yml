@@ -19,7 +19,7 @@ services:
       DB_DATABASE: "${DB_DATABASE:-mituni_api}"
       DB_USERNAME: "${DB_USERNAME:-root}"
       DB_PASSWORD: "${DB_PASSWORD:-Tiram@1993}"
-      REDIS_HOST: redis
+      REDIS_HOST: "${REDIS_HOST:-redis}"
     volumes:
       - ./:/var/www/html
     ports:
