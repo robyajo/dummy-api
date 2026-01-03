@@ -76,6 +76,8 @@ This project expects the following containers and network to be already running 
 
     (Note: If `docker-compose` command is not found, use `docker compose` instead, as newer Docker versions integrate compose directly).
 
+    > **Tip:** If you make changes to `Dockerfile` or `docker-compose.yml`, run this command again to rebuild the containers.
+
     This will start the PHP app on port `9001`.
 
 5.  **Install Dependencies**

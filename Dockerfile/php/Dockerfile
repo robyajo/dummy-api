@@ -38,6 +38,9 @@ RUN pecl install imagick && docker-php-ext-enable imagick
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Konfigurasi Git safe directory untuk mengatasi masalah ownership
+RUN git config --global --add safe.directory /var/www/html
+
 # Naikkan limit upload dan memory
 RUN { \
     echo "upload_max_filesize=512M"; \
