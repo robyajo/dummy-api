@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Intervention\Image\Laravel\Facades\Image;
@@ -56,23 +57,30 @@ class AuthController extends Controller
                 return $this->unauthorizedResponse();
             }
 
-            $roleName = $user->roles->first()->name ?? null;
+            $cacheKey = "user_permissions_{$user->id}";
 
-            if ($roleName === 'Super Admin') {
-                $permissions = Permission::all(['id', 'name']);
-            } else {
-                $permissions = $user->getPermissionsViaRoles()
-                    ->map(fn($p) => ['id' => $p->id, 'name' => $p->name]);
-            }
+            $data = Cache::remember($cacheKey, 60 * 60, function () use ($user) {
+                $roleName = $user->roles->first()->name ?? null;
 
-            return $this->successResponse([
-                'permissions' => $permissions,
-                'role' => $roleName,
-            ]);
+                if ($roleName === 'Super Admin') {
+                    $permissions = Permission::all(['id', 'name']);
+                } else {
+                    $permissions = $user->getPermissionsViaRoles()
+                        ->map(fn($p) => ['id' => $p->id, 'name' => $p->name]);
+                }
+
+                return [
+                    'permissions' => $permissions,
+                    'role'        => $roleName,
+                ];
+            });
+
+            return $this->successResponse($data);
         } catch (\Exception $e) {
             return $this->errorResponse('Server error: ' . $e->getMessage(), 500);
         }
     }
+
 
     /**
      * Register a new user.
@@ -127,6 +135,18 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
+        $key = 'login:' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            Log::warning('Login attempt failed for IP: ' . $request->ip());
+            return $this->errorResponse(
+                'Too many login attempts. Please try again later.',
+                429
+            );
+        }
+
+        RateLimiter::hit($key, 60); // max 5x per 1 menit
+
         $validator = Validator::make($request->all(), [
             'email' => [
                 'required',
@@ -224,7 +244,8 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
             ]);
-
+            Cache::forget("user_profile_{$user->id}");
+            Cache::forget("user_permissions_{$user->id}");
             return $this->successResponse($this->formatUserResponse($user), 'Profile updated successfully');
         } catch (\Exception $e) {
             return $this->errorResponse('Server error: ' . $e->getMessage(), 500);
@@ -272,13 +293,19 @@ class AuthController extends Controller
     public function logout(): JsonResponse
     {
         try {
-            JWTAuth::invalidate(JWTAuth::getToken());
+            $token = JWTAuth::getToken();
+            $ttl   = JWTAuth::factory()->getTTL() * 60;
+
+            Cache::put('jwt_blacklist_' . $token, true, $ttl);
+
+            JWTAuth::invalidate($token);
 
             return $this->successResponse(null, 'User logged out successfully');
         } catch (JWTException $e) {
-            return $this->errorResponse('Failed to logout, token invalid', 500, ['error' => $e->getMessage()]);
+            return $this->errorResponse('Failed to logout', 500);
         }
     }
+
 
     /**
      * Refresh auth token.
