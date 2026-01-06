@@ -188,7 +188,15 @@ class AuthController extends Controller
         $user = Auth::user();
 
         return $this->successResponse([
-            'user'  => $this->formatUserResponse($user),
+            'user'  => $this->formatUserResponse([
+                'id' => $user->id,
+                'uuid' => $user->uuid,
+                'role' => $user->roles->pluck('name')->first(),
+                'active' => $user->active,
+                'email_verified_at' => $user->email_verified_at,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ]),
             'token' => $this->respondWithToken($token),
         ], 'Login successful');
     }
