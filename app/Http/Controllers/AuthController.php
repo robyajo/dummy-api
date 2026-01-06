@@ -193,7 +193,7 @@ class AuthController extends Controller
             'role' => $user->roles->pluck('name')->toArray(),
         ];
         return $this->successResponse([
-            'user'  => $this->formatUserResponse($fUser),
+            'user'  => $fUser,
             'token' => $this->respondWithToken($token),
         ], 'Login successful');
     }
