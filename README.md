@@ -217,3 +217,20 @@ Jika Anda mengalami masalah izin dengan `storage` atau `bootstrap/cache`, jalank
 docker compose run --rm app chmod -R 777 storage bootstrap/cache
 docker compose run --rm app chown -R www-data:www-data storage bootstrap/cache
 ```
+
+### Masalah Storage Link (Forbidden/404 pada Gambar)
+
+Jika gambar tidak muncul atau error **403 Forbidden** saat diakses via Nginx Host (VPS), ini karena symlink default Laravel menggunakan absolute path container yang tidak terbaca oleh Host.
+
+**Solusi: Buat Symlink Relatif Manual**
+
+Jalankan perintah ini di terminal VPS (folder project):
+
+```bash
+cd public
+rm storage
+ln -s ../storage/app/public storage
+cd ..
+```
+
+Ini akan membuat symlink yang valid baik untuk Docker maupun Nginx Host.
