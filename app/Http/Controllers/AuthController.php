@@ -187,10 +187,11 @@ class AuthController extends Controller
 
         $user = Auth::user();
         $fUser = [
-            'name' => $user->name,
-            'email' => $user->email,
-            'avatar' => $user->avatar,
-            'role' => $user->roles->pluck('name')->toArray(),
+            'id' => $user->id,
+            'uuid' => $user->uuid,
+            'active' => $user->active,
+            'email_verified_at' => $user->email_verified_at,
+            'role' => $user->roles->first()->name ?? null,
         ];
         return $this->successResponse([
             'user'  => $fUser,
