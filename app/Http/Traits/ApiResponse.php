@@ -101,4 +101,42 @@ trait ApiResponse
             'errors' => $errors,
         ], $statusCode);
     }
+
+    /**
+     * Return a paginated success response.
+     *
+     * @param mixed $data
+     * @param string $message
+     * @param array $pagination
+     * @param array $links
+     * @param array $meta
+     * @return JsonResponse
+     */
+    protected function paginatedResponse(
+        $data,
+        string $message = 'Resources retrieved successfully',
+        array $pagination = [],
+        array $links = [],
+        array $meta = []
+    ): JsonResponse {
+        $response = [
+            'status' => 'success',
+            'message' => $message,
+            'data' => $data,
+        ];
+
+        if (!empty($pagination)) {
+            $response['pagination'] = $pagination;
+        }
+
+        if (!empty($links)) {
+            $response['links'] = $links;
+        }
+
+        if (!empty($meta)) {
+            $response['meta'] = $meta;
+        }
+
+        return response()->json($response, 200);
+    }
 }
