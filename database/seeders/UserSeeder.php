@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
         $user = User::create([
             'uuid' => Str::uuid(),
             'name' => 'Ini User',
-            'email' => 'u@u.com',
+            'email' => 'user@example.com',
             'active' => 'active',
             'email_verified_at' => now(),
             'password' => Hash::make('string')
