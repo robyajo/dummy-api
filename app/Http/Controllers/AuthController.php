@@ -339,6 +339,7 @@ class AuthController extends Controller
     }
 
     /**
+     * 
      * Get authenticated user profile with Redis Cache.
      */
     public function me(): JsonResponse

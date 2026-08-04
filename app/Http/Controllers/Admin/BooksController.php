@@ -11,7 +11,7 @@ use Intervention\Image\Laravel\Facades\Image;
 class BooksController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource (Admin).
      */
     public function index(Request $request)
     {
@@ -54,8 +54,8 @@ class BooksController extends Controller
             // General search by title, description, or authors if provided (partial match)
             elseif ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('title', 'LIKE', '%'.$search.'%')
-                        ->orWhere('description', 'LIKE', '%'.$search.'%')
+                    $q->where('title', 'LIKE', '%' . $search . '%')
+                        ->orWhere('description', 'LIKE', '%' . $search . '%')
                         ->orWhereJsonContains('authors', $search);
                 });
             }
@@ -77,7 +77,7 @@ class BooksController extends Controller
 
             // Filter by publisher if provided
             if ($publisher) {
-                $query->where('publisher', 'LIKE', '%'.$publisher.'%');
+                $query->where('publisher', 'LIKE', '%' . $publisher . '%');
             }
 
             // Filter by price range if provided
@@ -158,12 +158,12 @@ class BooksController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created resource in storage (Admin).
      */
     public function store(Request $request)
     {
@@ -186,7 +186,7 @@ class BooksController extends Controller
                 'rating_count' => 'nullable|integer|min:0',
             ]);
 
-            $validated['slug'] = str($validated['title'])->slug().'-'.uniqid();
+            $validated['slug'] = str($validated['title'])->slug() . '-' . uniqid();
 
             if ($request->user()) {
                 $validated['user_id'] = $request->user()->id;
@@ -194,7 +194,7 @@ class BooksController extends Controller
 
             if ($request->hasFile('cover_image')) {
                 $imageFile = $request->file('cover_image');
-                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
+                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/books');
 
                 if (! file_exists($path)) {
@@ -202,10 +202,10 @@ class BooksController extends Controller
                 }
 
                 $image = Image::read($imageFile);
-                $image->save($path.'/'.$filename);
+                $image->save($path . '/' . $filename);
 
-                $validated['cover_image'] = 'books/'.$filename;
-                $validated['cover_image_url'] = url('storage/books/'.$filename);
+                $validated['cover_image'] = 'books/' . $filename;
+                $validated['cover_image_url'] = url('storage/books/' . $filename);
             }
 
             $book = Book::create($validated);
@@ -218,7 +218,7 @@ class BooksController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -239,12 +239,12 @@ class BooksController extends Controller
                 'Book retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified resource in storage (Admin).
      */
     public function update(Request $request, string $uuid)
     {
@@ -274,17 +274,17 @@ class BooksController extends Controller
             ]);
 
             if (isset($validated['title']) && $validated['title'] !== $book->title) {
-                $validated['slug'] = str($validated['title'])->slug().'-'.uniqid();
+                $validated['slug'] = str($validated['title'])->slug() . '-' . uniqid();
             }
 
             if ($request->hasFile('cover_image')) {
                 // Delete old image
-                if ($book->cover_image && file_exists(storage_path('app/public/'.$book->cover_image))) {
-                    @unlink(storage_path('app/public/'.$book->cover_image));
+                if ($book->cover_image && file_exists(storage_path('app/public/' . $book->cover_image))) {
+                    @unlink(storage_path('app/public/' . $book->cover_image));
                 }
 
                 $imageFile = $request->file('cover_image');
-                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
+                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/books');
 
                 if (! file_exists($path)) {
@@ -292,10 +292,10 @@ class BooksController extends Controller
                 }
 
                 $image = Image::read($imageFile);
-                $image->save($path.'/'.$filename);
+                $image->save($path . '/' . $filename);
 
-                $validated['cover_image'] = 'books/'.$filename;
-                $validated['cover_image_url'] = url('storage/books/'.$filename);
+                $validated['cover_image'] = 'books/' . $filename;
+                $validated['cover_image_url'] = url('storage/books/' . $filename);
             }
 
             $book->update($validated);
@@ -307,12 +307,12 @@ class BooksController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (Admin).
      */
     public function destroy(string $uuid)
     {
@@ -323,8 +323,8 @@ class BooksController extends Controller
                 return $this->notFoundResponse('Book not found');
             }
 
-            if ($book->cover_image && file_exists(storage_path('app/public/'.$book->cover_image))) {
-                @unlink(storage_path('app/public/'.$book->cover_image));
+            if ($book->cover_image && file_exists(storage_path('app/public/' . $book->cover_image))) {
+                @unlink(storage_path('app/public/' . $book->cover_image));
             }
 
             $book->delete();
@@ -334,7 +334,7 @@ class BooksController extends Controller
                 'Book deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
