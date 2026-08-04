@@ -5,6 +5,13 @@
 # ------------------------------------------------------------------
 # 1. Clear Laravel file-based caches
 # ------------------------------------------------------------------
+
+set -e
+
+APP_DIR="/srv/www/php/dummy-api"
+ARTISAN="$APP_DIR/artisan"
+
+
 echo ""
 echo "[1/1] Clear Laravel caches..."
 if [ -f "$ARTISAN" ]; then
