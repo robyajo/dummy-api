@@ -29,7 +29,19 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'API documentation for the project.',
+        'description' => 'API documentation for the project.
+
+---
+
+## Test Credentials (for API testing)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Super Admin | `s@s.com` | `string` |
+| Admin | `a@a.com` | `string` |
+| User | `user@example.com` | `string` |
+
+> Use `POST /api/auth/login` with the credentials above to get a JWT token.',
     ],
 
     /*

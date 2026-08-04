@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
-use App\Http\Traits\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Intervention\Image\Laravel\Facades\Image;
 
 class ContactController extends Controller
 {
-    use ApiResponse;
-
     /**
      * Display a listing of the contacts.
+     *
      * @unauthenticated
      */
     public function index(Request $request)
@@ -31,23 +31,23 @@ class ContactController extends Controller
             $allowedSortFields = ['id', 'name', 'email', 'phone', 'created_at', 'updated_at'];
             $allowedSortOrders = ['asc', 'desc'];
 
-            if (!in_array($sortBy, $allowedSortFields)) {
+            if (! in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'created_at';
             }
 
-            if (!in_array(strtolower($sortOrder), $allowedSortOrders)) {
+            if (! in_array(strtolower($sortOrder), $allowedSortOrders)) {
                 $sortOrder = 'desc';
             }
 
             // Build query
-            $query = Contact::query();
+            $query = Contact::query()->with('user');
 
             // Search by name, email, phone
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('email', 'LIKE', '%' . $search . '%')
-                        ->orWhere('phone', 'LIKE', '%' . $search . '%');
+                    $q->where('name', 'LIKE', '%'.$search.'%')
+                        ->orWhere('email', 'LIKE', '%'.$search.'%')
+                        ->orWhere('phone', 'LIKE', '%'.$search.'%');
                 });
             }
 
@@ -108,12 +108,13 @@ class ContactController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
+            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
         }
     }
 
     /**
      * Store a newly created contact.
+     *
      * @unauthenticated
      */
     public function store(Request $request)
@@ -126,19 +127,22 @@ class ContactController extends Controller
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             ]);
 
+            // Set the authenticated user as the contact creator
+            $validated['user_id'] = $request->user()->id;
+
             if ($request->hasFile('avatar')) {
                 $imageFile = $request->file('avatar');
-                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
+                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/contacts');
 
-                if (!file_exists($path)) {
+                if (! file_exists($path)) {
                     mkdir($path, 0755, true);
                 }
 
                 $image = Image::read($imageFile);
-                $image->save($path . '/' . $filename);
+                $image->save($path.'/'.$filename);
 
-                $validated['avatar'] = 'contacts/' . $filename;
+                $validated['avatar'] = 'contacts/'.$filename;
             } else {
                 // Determine a default avatar if none provided
                 $validated['avatar'] = 'assets/template/sample-book.png'; // Adjust generic path as needed
@@ -151,23 +155,24 @@ class ContactController extends Controller
                 'Contact created successfully',
                 201
             );
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
+            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
         }
     }
 
     /**
      * Show contact by uuid.
+     *
      * @unauthenticated
      */
     public function show(string $uuid)
     {
         try {
-            $contact = Contact::where('uuid', $uuid)->first();
+            $contact = Contact::with('user')->where('uuid', $uuid)->first();
 
-            if (!$contact) {
+            if (! $contact) {
                 return $this->notFoundResponse('Contact not found');
             }
 
@@ -176,12 +181,13 @@ class ContactController extends Controller
                 'Contact retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
+            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
         }
     }
 
     /**
      * Update the specified contact in storage.
+     *
      * @unauthenticated
      */
     public function update(Request $request, string $uuid)
@@ -189,35 +195,35 @@ class ContactController extends Controller
         try {
             $contact = Contact::where('uuid', $uuid)->first();
 
-            if (!$contact) {
+            if (! $contact) {
                 return $this->notFoundResponse('Contact not found');
             }
 
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
-                'email' => 'sometimes|required|email|max:255|unique:contacts,email,' . $contact->id,
+                'email' => 'sometimes|required|email|max:255|unique:contacts,email,'.$contact->id,
                 'phone' => 'sometimes|required|string|max:50',
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             ]);
 
             if ($request->hasFile('avatar')) {
                 // Delete old image
-                if ($contact->avatar && !str_starts_with($contact->avatar, 'assets/') && file_exists(storage_path('app/public/' . $contact->avatar))) {
-                    @unlink(storage_path('app/public/' . $contact->avatar));
+                if ($contact->avatar && ! str_starts_with($contact->avatar, 'assets/') && file_exists(storage_path('app/public/'.$contact->avatar))) {
+                    @unlink(storage_path('app/public/'.$contact->avatar));
                 }
 
                 $imageFile = $request->file('avatar');
-                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
+                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/contacts');
 
-                if (!file_exists($path)) {
+                if (! file_exists($path)) {
                     mkdir($path, 0755, true);
                 }
 
                 $image = Image::read($imageFile);
-                $image->save($path . '/' . $filename);
+                $image->save($path.'/'.$filename);
 
-                $validated['avatar'] = 'contacts/' . $filename;
+                $validated['avatar'] = 'contacts/'.$filename;
             }
 
             $contact->update($validated);
@@ -226,15 +232,16 @@ class ContactController extends Controller
                 $contact->fresh(),
                 'Contact updated successfully'
             );
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
+            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
         }
     }
 
     /**
      * Remove the specified contact from storage.
+     *
      * @unauthenticated
      */
     public function destroy(string $uuid)
@@ -242,12 +249,12 @@ class ContactController extends Controller
         try {
             $contact = Contact::where('uuid', $uuid)->first();
 
-            if (!$contact) {
+            if (! $contact) {
                 return $this->notFoundResponse('Contact not found');
             }
 
-            if ($contact->avatar && !str_starts_with($contact->avatar, 'assets/') && file_exists(storage_path('app/public/' . $contact->avatar))) {
-                @unlink(storage_path('app/public/' . $contact->avatar));
+            if ($contact->avatar && ! str_starts_with($contact->avatar, 'assets/') && file_exists(storage_path('app/public/'.$contact->avatar))) {
+                @unlink(storage_path('app/public/'.$contact->avatar));
             }
 
             $contact->delete();
@@ -257,7 +264,7 @@ class ContactController extends Controller
                 'Contact deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
+            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
         }
     }
 }

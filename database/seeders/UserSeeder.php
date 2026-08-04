@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use Faker\Factory as Faker;
 use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
@@ -22,7 +21,7 @@ class UserSeeder extends Seeder
             'email' => 's@s.com',
             'active' => 'active',
             'email_verified_at' => now(),
-            'password' => Hash::make('string')
+            'password' => Hash::make('string'),
         ]);
         $superAdmin->assignRole('Super Admin');
 
@@ -33,7 +32,7 @@ class UserSeeder extends Seeder
             'email' => 'a@a.com',
             'active' => 'active',
             'email_verified_at' => now(),
-            'password' => Hash::make('string')
+            'password' => Hash::make('string'),
         ]);
         $admin->assignRole('Admin');
 
@@ -44,8 +43,22 @@ class UserSeeder extends Seeder
             'email' => 'user@example.com',
             'active' => 'active',
             'email_verified_at' => now(),
-            'password' => Hash::make('string')
+            'password' => Hash::make('string'),
         ]);
         $user->assignRole('User');
+
+        // Output test credentials to console
+        $this->command->info('');
+        $this->command->info('=== Test Credentials (for API testing) ===');
+        $this->command->table(
+            ['Role', 'Email', 'Password'],
+            [
+                ['Super Admin', 's@s.com', 'string'],
+                ['Admin', 'a@a.com', 'string'],
+                ['User', 'user@example.com', 'string'],
+            ]
+        );
+        $this->command->info('Login endpoint: POST /api/auth/login');
+        $this->command->info('');
     }
 }

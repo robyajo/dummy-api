@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Contact;
+use App\Models\User;
+use Faker\Factory;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ContactSeeder extends Seeder
@@ -14,23 +15,20 @@ class ContactSeeder extends Seeder
      */
     public function run(): void
     {
-        $contacts = [];
+        $faker = Factory::create('id_ID');
 
-        // Using faker to generate contacts
-        $faker = \Faker\Factory::create('id_ID');
+        // Get the default User for assigning as contact creator
+        $defaultUser = User::where('email', 'user@example.com')->first();
 
         for ($i = 1; $i <= 50; $i++) {
-            $contacts[] = [
-                'uuid' => Str::uuid(),
+            Contact::create([
+                'uuid' => (string) Str::uuid(),
+                'user_id' => $defaultUser?->id,
                 'name' => $faker->name(),
                 'email' => $faker->unique()->safeEmail(),
                 'phone' => $faker->phoneNumber(),
-                'avatar' => 'assets/template/avatar-' . rand(1, 4) . '.png',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+                'avatar' => 'https://api.dicebear.com/7.x/adventurer/svg?seed='.urlencode($faker->name()),
+            ]);
         }
-
-        DB::table('contacts')->insert($contacts);
     }
 }

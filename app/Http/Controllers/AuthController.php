@@ -2,38 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Traits\ApiResponse;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
 use Intervention\Image\Laravel\Facades\Image;
+use Spatie\Permission\Models\Permission;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-    use ApiResponse;
-
     /**
      * Check if user session is active
-     *
-     * @return JsonResponse
      */
     public function session(): JsonResponse
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->errorResponse('Unauthorized', 401, ['authenticated' => false]);
             }
 
@@ -42,18 +38,17 @@ class AuthController extends Controller
             return $this->errorResponse('Server error: ' . $e->getMessage(), 500, ['authenticated' => false]);
         }
     }
+
     /**
      * Get user permissions and role
-     * 
-     * @return JsonResponse
      */
     public function permission(): JsonResponse
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->unauthorizedResponse();
             }
 
@@ -71,7 +66,7 @@ class AuthController extends Controller
 
                 return [
                     'permissions' => $permissions,
-                    'role'        => $roleName,
+                    'role' => $roleName,
                 ];
             });
 
@@ -81,19 +76,32 @@ class AuthController extends Controller
         }
     }
 
-
     /**
      * Register a new user.
+     *
      * @unauthenticated
-     * 
-     * @param Request $request
-     * @return JsonResponse
+     *
+     * @example {
+     *   "name": "John Doe",
+     *   "email": "john@example.com",
+     *   "password": "password123",
+     *   "password_confirmation": "password123"
+     * }
      */
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            /**
+             * @example John Doe
+             */
             'name' => 'required|string|max:255',
+            /**
+             * @example john@example.com
+             */
             'email' => 'required|email|unique:users,email',
+            /**
+             * @example password123
+             */
             'password' => 'required|min:6|confirmed',
         ], [
             'name.required' => 'Name is required.',
@@ -110,8 +118,8 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
@@ -120,18 +128,20 @@ class AuthController extends Controller
         $token = JWTAuth::fromUser($user);
 
         return $this->successResponse([
-            'user'  => $this->formatUserResponse($user),
+            'user' => $this->formatUserResponse($user),
             'token' => $this->respondWithToken($token),
         ], 'User successfully registered', 201);
     }
 
-
     /**
      * Login user and get token.
-     * 
+     *
      * @unauthenticated
-     * @param Request $request
-     * @return JsonResponse
+     *
+     * Test Credentials:
+     * - Super Admin: s@s.com / string
+     * - Admin: a@a.com / string
+     * - User: user@example.com / string
      */
     public function login(Request $request): JsonResponse
     {
@@ -139,6 +149,7 @@ class AuthController extends Controller
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             Log::warning('Login attempt failed for IP: ' . $request->ip());
+
             return $this->errorResponse(
                 'Too many login attempts. Please try again later.',
                 429
@@ -148,11 +159,17 @@ class AuthController extends Controller
         RateLimiter::hit($key, 60); // max 5x per 1 menit
 
         $validator = Validator::make($request->all(), [
+            /**
+             * @example user@example.com
+             */
             'email' => [
                 'required',
                 'email',
             ],
-            'password' => 'required|min:3'
+            /**
+             * @example string
+             */
+            'password' => 'required|min:3',
         ], [
             'email.required' => 'Email is required.',
             'email.email' => 'Email format is invalid.',
@@ -166,19 +183,19 @@ class AuthController extends Controller
         // Cek apakah email terdaftar
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return $this->errorResponse('Authentication failed', 401, ['email' => ['This email is not registered. Please sign up first.']]);
         }
 
         // Email ada, cek password
-        if (!Hash::check($request->password, $user->password)) {
+        if (! Hash::check($request->password, $user->password)) {
             return $this->errorResponse('Authentication failed', 401, ['password' => ['Password is incorrect.']]);
         }
 
         $credentials = $request->only('email', 'password');
 
         try {
-            if (!$token = JWTAuth::attempt($credentials)) {
+            if (! $token = JWTAuth::attempt($credentials)) {
                 return $this->unauthorizedResponse('Invalid credentials');
             }
         } catch (JWTException $e) {
@@ -186,32 +203,25 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $fUser = [
-            'id' => $user->id,
-            'uuid' => $user->uuid,
-            'active' => $user->active,
-            'email_verified_at' => $user->email_verified_at,
-            'role' => $user->roles->first()->name ?? null,
-        ];
+
         return $this->successResponse([
-            'user'  => $fUser,
+            'user' => $this->formatUserResponse($user),
             'token' => $this->respondWithToken($token),
         ], 'Login successful');
     }
+
     /**
      * Update User
      *
-     * @param Request $request
-     * @param string $uuid
      * @return JsonResponse
      */
     public function update(Request $request, string $uuid)
     {
         try {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = User::with(['roles'])->where('uuid', $uuid)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return $this->notFoundResponse('User not found');
             }
 
@@ -252,6 +262,7 @@ class AuthController extends Controller
             ]);
             Cache::forget("user_profile_{$user->id}");
             Cache::forget("user_permissions_{$user->id}");
+
             return $this->successResponse($this->formatUserResponse($user), 'Profile updated successfully');
         } catch (\Exception $e) {
             return $this->errorResponse('Server error: ' . $e->getMessage(), 500);
@@ -260,14 +271,17 @@ class AuthController extends Controller
 
     /**
      * Update user password
-     * 
-     * @param Request $request
-     * @return JsonResponse
      */
     public function updatePassword(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            /**
+             * @example currentpassword
+             */
             'current_password' => 'required|string',
+            /**
+             * @example newpassword123
+             */
             'new_password' => 'required|string|min:6|confirmed|different:current_password',
         ], [
             'new_password.different' => 'New password must be different from current password.',
@@ -277,15 +291,15 @@ class AuthController extends Controller
             return $this->validationErrorResponse($validator->errors()->toArray());
         }
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return $this->errorResponse('Current password does not match', 400);
         }
 
         $user->update([
-            'password' => Hash::make($request->new_password)
+            'password' => Hash::make($request->new_password),
         ]);
 
         return $this->successResponse(null, 'Password updated successfully');
@@ -293,14 +307,12 @@ class AuthController extends Controller
 
     /**
      * Logout user (invalidate token).
-     * 
-     * @return JsonResponse
      */
     public function logout(): JsonResponse
     {
         try {
             $token = JWTAuth::getToken();
-            $ttl   = JWTAuth::factory()->getTTL() * 60;
+            $ttl = JWTAuth::factory()->getTTL() * 60;
 
             Cache::put('jwt_blacklist_' . $token, true, $ttl);
 
@@ -312,11 +324,8 @@ class AuthController extends Controller
         }
     }
 
-
     /**
      * Refresh auth token.
-     * 
-     * @return JsonResponse
      */
     public function refresh(): JsonResponse
     {
@@ -331,8 +340,6 @@ class AuthController extends Controller
 
     /**
      * Get authenticated user profile with Redis Cache.
-     * 
-     * @return JsonResponse
      */
     public function me(): JsonResponse
     {
@@ -347,6 +354,7 @@ class AuthController extends Controller
 
             $userProfile = Cache::remember($cacheKey, 60 * 60, function () use ($user) {
                 Log::info('REDIS MISS: Mengambil data user dari Database untuk ID: ' . $user->id);
+
                 return $this->formatUserResponse($user);
             });
 
@@ -358,15 +366,19 @@ class AuthController extends Controller
 
     /**
      * Forgot password
-     * @unauthenticated
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @unauthenticated
      */
     public function forgotPassword(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            /**
+             * @example user@example.com
+             */
             'email' => 'required|email|exists:users,email',
+            /**
+             * @example newpassword123
+             */
             'password' => 'required|min:8|confirmed',
         ], [
             'email.required' => 'Email is required.',
@@ -393,32 +405,28 @@ class AuthController extends Controller
     }
 
     /**
-     * Upload and resize avatar image
-     *
-     * @param UploadedFile $avatar
-     * @return string
+     * Upload and resize avatar image.
      */
-    private function uploadAvatar($avatar)
+    private function uploadAvatar(UploadedFile $avatar): string
     {
         $filename = time() . '_' . Str::random(10) . '.' . $avatar->getClientOriginalExtension();
         $path = storage_path('app/public/assets/images/user/avatar/');
 
         // Create directory if not exists
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             mkdir($path, 0777, true);
         }
 
         $image = Image::read($avatar);
-        $image->resize(300, 300, function ($constraint) {
-            $constraint->aspectRatio();
-        })->save($path . $filename);
+        $image->scaleDown(300, 300)->save($path . $filename);
 
         return $filename;
     }
+
     /**
      * Format user response data
      *
-     * @param User $user
+     * @param  User  $user
      * @return array
      */
     private function formatUserResponse($user)
@@ -431,26 +439,25 @@ class AuthController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'avatar' => $user->avatar,
-            'avatar_url' => $user->avatar
-                ? asset('storage/assets/images/user/avatar/' . $user->avatar)
-                : null,
+            'avatar_url' => $user->avatar_url,
             'role' => $roleName,
+            'permissions' => $user->getPermissionsViaRoles()->pluck('name'),
             'active' => $user->active,
-            // 'profile' => $user->profile, // Relationship not defined yet
             'email_verified_at' => $user->email_verified_at,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
         ];
     }
+
     /**
-     * Helper: format token response
+     * Helper: format token response.
      */
-    protected function respondWithToken($token)
+    protected function respondWithToken(string $token): array
     {
         return [
             'access_token' => $token,
-            'token_type'   => 'bearer',
-            'expires_in'   => JWTAuth::factory()->getTTL() * 60, // dalam detik
+            'token_type' => 'bearer',
+            'expires_in' => JWTAuth::factory()->getTTL() * 60, // dalam detik
         ];
     }
 }

@@ -1,9 +1,6 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BooksController;
-use App\Http\Controllers\ContactController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->name('auth.')->group(function () {
@@ -22,26 +19,6 @@ Route::prefix('auth')->name('auth.')->group(function () {
         Route::get('permission', [AuthController::class, 'permission'])->name('permission');
     });
 });
-Route::prefix('admin')->middleware('jwt')->group(function () {
-    Route::prefix('books')->controller(BooksController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{uuid}', 'show');
-        Route::post('/{uuid}', 'update');
-        Route::delete('/{uuid}', 'destroy');
-    });
-});
-
-Route::prefix('public')->group(function () {
-    Route::prefix('books')->controller(BooksController::class)->group(function () {
-        Route::get('/', 'indexPublic');
-        Route::get('/{slug}', 'showPublic');
-    });
-    Route::prefix('contacts')->controller(ContactController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{uuid}', 'show');
-        Route::post('/{uuid}', 'update');
-        Route::delete('/{uuid}', 'destroy');
-    });
-});
+require __DIR__.'/admin.php';
+require __DIR__.'/user.php';
+require __DIR__.'/public.php';
