@@ -23,6 +23,10 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             BookSeeder::class,
             ContactSeeder::class,
+            StatusSeeder::class,
+            CategoriPostSeeder::class,
+            TagSeeder::class,
+            PostSeeder::class,
         ]);
     }
 }
