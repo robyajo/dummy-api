@@ -4,8 +4,10 @@ namespace App\Http\Controllers\PublicApi;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 
+#[Group('Public', description: 'Endpoint publik yang dapat diakses tanpa autentikasi.', weight: 1)]
 class BooksController extends Controller
 {
     /**
@@ -47,8 +49,8 @@ class BooksController extends Controller
                 $query->where('title', $title);
             } elseif ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('title', 'LIKE', '%'.$search.'%')
-                        ->orWhere('description', 'LIKE', '%'.$search.'%')
+                    $q->where('title', 'LIKE', '%' . $search . '%')
+                        ->orWhere('description', 'LIKE', '%' . $search . '%')
                         ->orWhereJsonContains('authors', $search);
                 });
             }
@@ -66,7 +68,7 @@ class BooksController extends Controller
             }
 
             if ($publisher) {
-                $query->where('publisher', 'LIKE', '%'.$publisher.'%');
+                $query->where('publisher', 'LIKE', '%' . $publisher . '%');
             }
 
             if ($minPrice) {
@@ -140,7 +142,7 @@ class BooksController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -163,7 +165,7 @@ class BooksController extends Controller
                 'Book retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 

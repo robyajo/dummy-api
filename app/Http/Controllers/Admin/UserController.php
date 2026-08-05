@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Intervention\Image\Laravel\Facades\Image;
 
+#[Group('Admin', description: 'Endpoint khusus administrator.', weight: 3)]
 class UserController extends Controller
 {
     /**
@@ -42,8 +44,8 @@ class UserController extends Controller
             // Search by name or email
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%'.$search.'%')
-                        ->orWhere('email', 'LIKE', '%'.$search.'%');
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('email', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -117,7 +119,7 @@ class UserController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -146,7 +148,7 @@ class UserController extends Controller
 
             if ($request->hasFile('avatar')) {
                 $imageFile = $request->file('avatar');
-                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
+                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/avatars');
 
                 if (! file_exists($path)) {
@@ -154,9 +156,9 @@ class UserController extends Controller
                 }
 
                 $image = Image::read($imageFile);
-                $image->save($path.'/'.$filename);
+                $image->save($path . '/' . $filename);
 
-                $validated['avatar'] = 'avatars/'.$filename;
+                $validated['avatar'] = 'avatars/' . $filename;
             }
 
             $roles = $validated['roles'] ?? [];
@@ -176,7 +178,7 @@ class UserController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -197,7 +199,7 @@ class UserController extends Controller
                 'User retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -215,7 +217,7 @@ class UserController extends Controller
 
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
-                'email' => 'sometimes|required|email|max:255|unique:users,email,'.$user->id,
+                'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
                 'password' => 'nullable|string|min:6|confirmed',
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'active' => 'nullable|string|in:active,inactive',
@@ -231,12 +233,12 @@ class UserController extends Controller
 
             if ($request->hasFile('avatar')) {
                 // Delete old avatar
-                if ($user->avatar && ! str_starts_with($user->avatar, 'assets/') && file_exists(storage_path('app/public/'.$user->avatar))) {
-                    @unlink(storage_path('app/public/'.$user->avatar));
+                if ($user->avatar && ! str_starts_with($user->avatar, 'assets/') && file_exists(storage_path('app/public/' . $user->avatar))) {
+                    @unlink(storage_path('app/public/' . $user->avatar));
                 }
 
                 $imageFile = $request->file('avatar');
-                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
+                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/avatars');
 
                 if (! file_exists($path)) {
@@ -244,9 +246,9 @@ class UserController extends Controller
                 }
 
                 $image = Image::read($imageFile);
-                $image->save($path.'/'.$filename);
+                $image->save($path . '/' . $filename);
 
-                $validated['avatar'] = 'avatars/'.$filename;
+                $validated['avatar'] = 'avatars/' . $filename;
             }
 
             $roles = $validated['roles'] ?? null;
@@ -265,7 +267,7 @@ class UserController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -286,8 +288,8 @@ class UserController extends Controller
                 return $this->errorResponse('Cannot delete Super Admin user', 403);
             }
 
-            if ($user->avatar && ! str_starts_with($user->avatar, 'assets/') && file_exists(storage_path('app/public/'.$user->avatar))) {
-                @unlink(storage_path('app/public/'.$user->avatar));
+            if ($user->avatar && ! str_starts_with($user->avatar, 'assets/') && file_exists(storage_path('app/public/' . $user->avatar))) {
+                @unlink(storage_path('app/public/' . $user->avatar));
             }
 
             $user->delete();
@@ -297,7 +299,7 @@ class UserController extends Controller
                 'User deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 

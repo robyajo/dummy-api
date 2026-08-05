@@ -4,8 +4,10 @@ namespace App\Http\Controllers\PublicApi;
 
 use App\Http\Controllers\Controller;
 use App\Models\CategoriPost;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 
+#[Group('Public', description: 'Endpoint publik yang dapat diakses tanpa autentikasi.', weight: 1)]
 class PostCategoriController extends Controller
 {
     /**
@@ -38,8 +40,8 @@ class PostCategoriController extends Controller
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%'.$search.'%')
-                        ->orWhere('description', 'LIKE', '%'.$search.'%');
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('description', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -95,7 +97,7 @@ class PostCategoriController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -118,7 +120,7 @@ class PostCategoriController extends Controller
                 'Post category retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 }

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\CategoriPost;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
+#[Group('User', description: 'Endpoint untuk pengguna yang sudah login.', weight: 2)]
 class PostCategoriController extends Controller
 {
     /**
@@ -37,8 +39,8 @@ class PostCategoriController extends Controller
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%'.$search.'%')
-                        ->orWhere('description', 'LIKE', '%'.$search.'%');
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('description', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -93,7 +95,7 @@ class PostCategoriController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -109,7 +111,7 @@ class PostCategoriController extends Controller
             ]);
 
             $validated['user_id'] = $request->user()->id;
-            $validated['slug'] = str($validated['name'])->slug().'-'.time();
+            $validated['slug'] = str($validated['name'])->slug() . '-' . time();
 
             $category = CategoriPost::create($validated);
 
@@ -121,7 +123,7 @@ class PostCategoriController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -142,7 +144,7 @@ class PostCategoriController extends Controller
                 'Post category retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -164,7 +166,7 @@ class PostCategoriController extends Controller
             ]);
 
             if (isset($validated['name'])) {
-                $validated['slug'] = str($validated['name'])->slug().'-'.$category->id;
+                $validated['slug'] = str($validated['name'])->slug() . '-' . $category->id;
             }
 
             $category->update($validated);
@@ -176,7 +178,7 @@ class PostCategoriController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -199,7 +201,7 @@ class PostCategoriController extends Controller
                 'Post category deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 }

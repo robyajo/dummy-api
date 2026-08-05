@@ -4,9 +4,11 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tag;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
+#[Group('User', description: 'Endpoint untuk pengguna yang sudah login.', weight: 2)]
 class PostTagController extends Controller
 {
     /**
@@ -37,8 +39,8 @@ class PostTagController extends Controller
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%'.$search.'%')
-                        ->orWhere('description', 'LIKE', '%'.$search.'%');
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('description', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -93,7 +95,7 @@ class PostTagController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -109,7 +111,7 @@ class PostTagController extends Controller
             ]);
 
             $validated['user_id'] = $request->user()->id;
-            $validated['slug'] = str($validated['name'])->slug().'-'.time();
+            $validated['slug'] = str($validated['name'])->slug() . '-' . time();
 
             $tag = Tag::create($validated);
 
@@ -121,7 +123,7 @@ class PostTagController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -142,7 +144,7 @@ class PostTagController extends Controller
                 'Post tag retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -164,7 +166,7 @@ class PostTagController extends Controller
             ]);
 
             if (isset($validated['name'])) {
-                $validated['slug'] = str($validated['name'])->slug().'-'.$tag->id;
+                $validated['slug'] = str($validated['name'])->slug() . '-' . $tag->id;
             }
 
             $tag->update($validated);
@@ -176,7 +178,7 @@ class PostTagController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -199,7 +201,7 @@ class PostTagController extends Controller
                 'Post tag deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 }

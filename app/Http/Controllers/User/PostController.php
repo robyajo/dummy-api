@@ -4,9 +4,11 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
+#[Group('User', description: 'Endpoint untuk pengguna yang sudah login.', weight: 2)]
 class PostController extends Controller
 {
     /**
@@ -43,9 +45,9 @@ class PostController extends Controller
                 $query->where('title', $title);
             } elseif ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('title', 'LIKE', '%'.$search.'%')
-                        ->orWhere('excerpt', 'LIKE', '%'.$search.'%')
-                        ->orWhere('content', 'LIKE', '%'.$search.'%');
+                    $q->where('title', 'LIKE', '%' . $search . '%')
+                        ->orWhere('excerpt', 'LIKE', '%' . $search . '%')
+                        ->orWhere('content', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -126,7 +128,7 @@ class PostController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -149,12 +151,12 @@ class PostController extends Controller
             ]);
 
             $validated['author_id'] = $request->user()->id;
-            $validated['slug'] = str($validated['title'])->slug().'-'.time();
+            $validated['slug'] = str($validated['title'])->slug() . '-' . time();
             $validated['views'] = '0';
 
             if ($request->hasFile('cover_image')) {
                 $imageFile = $request->file('cover_image');
-                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
+                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/posts');
 
                 if (! file_exists($path)) {
@@ -163,7 +165,7 @@ class PostController extends Controller
 
                 $imageFile->move($path, $filename);
 
-                $validated['cover_image'] = 'posts/'.$filename;
+                $validated['cover_image'] = 'posts/' . $filename;
             }
 
             $post = Post::create($validated);
@@ -176,7 +178,7 @@ class PostController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -199,7 +201,7 @@ class PostController extends Controller
                 'Post retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -228,16 +230,16 @@ class PostController extends Controller
             ]);
 
             if (isset($validated['title'])) {
-                $validated['slug'] = str($validated['title'])->slug().'-'.$post->id;
+                $validated['slug'] = str($validated['title'])->slug() . '-' . $post->id;
             }
 
             if ($request->hasFile('cover_image')) {
-                if ($post->cover_image && file_exists(storage_path('app/public/'.$post->cover_image))) {
-                    @unlink(storage_path('app/public/'.$post->cover_image));
+                if ($post->cover_image && file_exists(storage_path('app/public/' . $post->cover_image))) {
+                    @unlink(storage_path('app/public/' . $post->cover_image));
                 }
 
                 $imageFile = $request->file('cover_image');
-                $filename = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
+                $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
                 $path = storage_path('app/public/posts');
 
                 if (! file_exists($path)) {
@@ -246,7 +248,7 @@ class PostController extends Controller
 
                 $imageFile->move($path, $filename);
 
-                $validated['cover_image'] = 'posts/'.$filename;
+                $validated['cover_image'] = 'posts/' . $filename;
             }
 
             $post->update($validated);
@@ -258,7 +260,7 @@ class PostController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -274,8 +276,8 @@ class PostController extends Controller
                 return $this->notFoundResponse('Post not found');
             }
 
-            if ($post->cover_image && file_exists(storage_path('app/public/'.$post->cover_image))) {
-                @unlink(storage_path('app/public/'.$post->cover_image));
+            if ($post->cover_image && file_exists(storage_path('app/public/' . $post->cover_image))) {
+                @unlink(storage_path('app/public/' . $post->cover_image));
             }
 
             $post->delete();
@@ -285,7 +287,7 @@ class PostController extends Controller
                 'Post deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 

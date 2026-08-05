@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -23,6 +24,7 @@ class AuthController extends Controller
     /**
      * Check if user session is active
      */
+    #[Group('User', weight: 2)]
     public function session(): JsonResponse
     {
         try {
@@ -41,6 +43,7 @@ class AuthController extends Controller
 
     /**
      * Get user permissions and role
+    #[Group('User', weight: 2)]
      */
     public function permission(): JsonResponse
     {
@@ -87,6 +90,7 @@ class AuthController extends Controller
      *   "password": "password123",
      *   "password_confirmation": "password123"
      * }
+    #[Group('Public', weight: 1)]
      */
     public function register(Request $request): JsonResponse
     {
@@ -141,6 +145,7 @@ class AuthController extends Controller
      * Test Credentials:
      * - Super Admin: s@s.com / string
      * - Admin: a@a.com / string
+    #[Group('Public', weight: 1)]
      * - User: user@example.com / string
      */
     public function login(Request $request): JsonResponse
@@ -213,6 +218,7 @@ class AuthController extends Controller
     /**
      * Update User
      *
+    #[Group('User', weight: 2)]
      * @return JsonResponse
      */
     public function update(Request $request, string $uuid)
@@ -270,6 +276,7 @@ class AuthController extends Controller
     }
 
     /**
+    #[Group('User', weight: 2)]
      * Update user password
      */
     public function updatePassword(Request $request): JsonResponse
@@ -305,6 +312,7 @@ class AuthController extends Controller
         return $this->successResponse(null, 'Password updated successfully');
     }
 
+    #[Group('User', weight: 2)]
     /**
      * Logout user (invalidate token).
      */
@@ -324,6 +332,7 @@ class AuthController extends Controller
         }
     }
 
+    #[Group('User', weight: 2)]
     /**
      * Refresh auth token.
      */
@@ -338,8 +347,8 @@ class AuthController extends Controller
         }
     }
 
+    #[Group('User', weight: 2)]
     /**
-     * 
      * Get authenticated user profile with Redis Cache.
      */
     public function me(): JsonResponse
@@ -366,6 +375,7 @@ class AuthController extends Controller
     }
 
     /**
+    #[Group('Public', weight: 1)]
      * Forgot password
      *
      * @unauthenticated

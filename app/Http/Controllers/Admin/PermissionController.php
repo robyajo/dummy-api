@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 
+#[Group('Admin', description: 'Endpoint khusus administrator.', weight: 3)]
 class PermissionController extends Controller
 {
     /**
@@ -36,7 +38,7 @@ class PermissionController extends Controller
             $query = Permission::query();
 
             if ($search) {
-                $query->where('name', 'LIKE', '%'.$search.'%');
+                $query->where('name', 'LIKE', '%' . $search . '%');
             }
 
             $query->orderBy($sortBy, $sortOrder);
@@ -95,7 +97,7 @@ class PermissionController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -119,7 +121,7 @@ class PermissionController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -140,7 +142,7 @@ class PermissionController extends Controller
                 'Permission retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -157,7 +159,7 @@ class PermissionController extends Controller
             }
 
             $validated = $request->validate([
-                'name' => 'sometimes|required|string|max:255|unique:permissions,name,'.$id,
+                'name' => 'sometimes|required|string|max:255|unique:permissions,name,' . $id,
             ]);
 
             $permission->update($validated);
@@ -169,7 +171,7 @@ class PermissionController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -192,7 +194,7 @@ class PermissionController extends Controller
                 'Permission deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 

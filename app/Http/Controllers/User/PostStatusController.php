@@ -4,9 +4,11 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Status;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
+#[Group('User', description: 'Endpoint untuk pengguna yang sudah login.', weight: 2)]
 class PostStatusController extends Controller
 {
     /**
@@ -37,8 +39,8 @@ class PostStatusController extends Controller
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%'.$search.'%')
-                        ->orWhere('description', 'LIKE', '%'.$search.'%');
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('description', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -93,7 +95,7 @@ class PostStatusController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -110,7 +112,7 @@ class PostStatusController extends Controller
             ]);
 
             $validated['user_id'] = $request->user()->id;
-            $validated['slug'] = str($validated['name'])->slug().'-'.time();
+            $validated['slug'] = str($validated['name'])->slug() . '-' . time();
 
             $status = Status::create($validated);
 
@@ -122,7 +124,7 @@ class PostStatusController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -143,7 +145,7 @@ class PostStatusController extends Controller
                 'Post status retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -166,7 +168,7 @@ class PostStatusController extends Controller
             ]);
 
             if (isset($validated['name'])) {
-                $validated['slug'] = str($validated['name'])->slug().'-'.$status->id;
+                $validated['slug'] = str($validated['name'])->slug() . '-' . $status->id;
             }
 
             $status->update($validated);
@@ -178,7 +180,7 @@ class PostStatusController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -201,7 +203,7 @@ class PostStatusController extends Controller
                 'Post status deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 }

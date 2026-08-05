@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
+#[Group('Admin', description: 'Endpoint khusus administrator.', weight: 3)]
 class RoleController extends Controller
 {
     /**
@@ -36,7 +38,7 @@ class RoleController extends Controller
             $query = Role::with('permissions');
 
             if ($search) {
-                $query->where('name', 'LIKE', '%'.$search.'%');
+                $query->where('name', 'LIKE', '%' . $search . '%');
             }
 
             $query->orderBy($sortBy, $sortOrder);
@@ -95,7 +97,7 @@ class RoleController extends Controller
                 $meta
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -125,7 +127,7 @@ class RoleController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -146,7 +148,7 @@ class RoleController extends Controller
                 'Role retrieved successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -163,7 +165,7 @@ class RoleController extends Controller
             }
 
             $validated = $request->validate([
-                'name' => 'sometimes|required|string|max:255|unique:roles,name,'.$id,
+                'name' => 'sometimes|required|string|max:255|unique:roles,name,' . $id,
                 'permissions' => 'nullable|array',
                 'permissions.*' => 'string|exists:permissions,name',
             ]);
@@ -183,7 +185,7 @@ class RoleController extends Controller
         } catch (ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 
@@ -202,7 +204,7 @@ class RoleController extends Controller
             // Prevent deleting built-in roles
             $protectedRoles = ['Super Admin', 'Admin', 'User'];
             if (in_array($role->name, $protectedRoles)) {
-                return $this->errorResponse('Cannot delete built-in role: '.$role->name, 403);
+                return $this->errorResponse('Cannot delete built-in role: ' . $role->name, 403);
             }
 
             $role->delete();
@@ -212,7 +214,7 @@ class RoleController extends Controller
                 'Role deleted successfully'
             );
         } catch (\Throwable $th) {
-            return $this->errorResponse('Server error: '.$th->getMessage(), 500);
+            return $this->errorResponse('Server error: ' . $th->getMessage(), 500);
         }
     }
 

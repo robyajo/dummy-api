@@ -4,16 +4,16 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Intervention\Image\Laravel\Facades\Image;
 
+#[Group('User', description: 'Endpoint untuk pengguna yang sudah login.', weight: 2)]
 class ContactController extends Controller
 {
     /**
      * Display a listing of the contacts (User).
-     *
-     * 
      */
     public function index(Request $request)
     {
@@ -114,8 +114,6 @@ class ContactController extends Controller
 
     /**
      * Store a newly created contact (User).
-     *
-     * 
      */
     public function store(Request $request)
     {
@@ -164,8 +162,6 @@ class ContactController extends Controller
 
     /**
      * Show contact by uuid (User).
-     *
-     * 
      */
     public function show(string $uuid)
     {
@@ -187,8 +183,6 @@ class ContactController extends Controller
 
     /**
      * Update the specified contact in storage (User).
-     *
-     * 
      */
     public function update(Request $request, string $uuid)
     {
@@ -241,8 +235,6 @@ class ContactController extends Controller
 
     /**
      * Remove the specified contact from storage (User).
-     *
-     * 
      */
     public function destroy(string $uuid)
     {
