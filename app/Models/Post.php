@@ -2,36 +2,23 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[Fillable(['uuid', 'title', 'slug', 'excerpt', 'content', 'cover_image', 'author_id', 'category_id', 'status_id', 'tag_id', 'published_at', 'views', 'meta_description'])]
 class Post extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'posts';
-
-    protected $fillable = [
-        'uuid',
-        'title',
-        'slug',
-        'excerpt',
-        'content',
-        'cover_image',
-        'author_id',
-        'category_id',
-        'status_id',
-        'tag_id',
-        'published_at',
-        'views',
-        'meta_description',
-    ];
-
-    protected $casts = [
-        'published_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'published_at' => 'datetime',
+        ];
+    }
 
     protected static function boot()
     {

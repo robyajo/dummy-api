@@ -2,25 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[Fillable(['uuid', 'user_id', 'name', 'slug', 'description', 'type'])]
 class Status extends Model
 {
     use HasFactory;
-
-    protected $table = 'statuses';
-
-    protected $fillable = [
-        'uuid',
-        'user_id',
-        'name',
-        'slug',
-        'description',
-        'type',
-    ];
 
     protected static function boot()
     {
